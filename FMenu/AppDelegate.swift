@@ -52,6 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func readListFromStandardInput() -> [String] {
+        //return ["Option A", "Option B", "Option C"]
         var list: [String] = []
         
         let input = FileHandle.standardInput

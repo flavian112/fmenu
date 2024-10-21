@@ -24,28 +24,42 @@ struct FMenuView: View {
     var body: some View {
         HStack {
             Text(args.prompt)
-                .foregroundStyle(.black)
-                .background(.white)
-            CustomTextField(text: $searchString)
+                .foregroundStyle(color(args.colorSelectedForeground))
+                .background(color(args.colorSelectedBackground))
+            TextField(text: $searchString) {
+                Text("")
+            }
+            .textFieldStyle(PlainTextFieldStyle())
+                .foregroundStyle(color(args.colorForeground))
+                .background(color(args.colorBackground))
                 .frame(width: 200)
                 .focused($isFocused)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(Array(filteredOptions.enumerated()), id: \.element) { index, option in
-                        if (index == selectedOption) {
-                            Text(option)
-                                .padding([.leading, .trailing], 5)
-                                .foregroundStyle(color(args.colorSelectedForeground))
-                                .background(color(args.colorSelectedBackground))
-                        } else {
-                            Text(option)
-                                .padding([.leading, .trailing], 5)
-                                .foregroundStyle(color(args.colorForeground))
-                                .background(color(args.colorBackground))
+                ScrollViewReader { sp in
+                    HStack(spacing: 0) {
+                        ForEach(Array(filteredOptions.enumerated()), id: \.offset) { index, option in
+                            if (index == selectedOption) {
+                                Text(option)
+                                    .padding([.leading, .trailing], 5)
+                                    .foregroundStyle(color(args.colorSelectedForeground))
+                                    .background(color(args.colorSelectedBackground))
+                            } else {
+                                Text(option)
+                                    .padding([.leading, .trailing], 5)
+                                    .foregroundStyle(color(args.colorForeground))
+                                    .background(color(args.colorBackground))
+                            }
+                                       
                         }
-                                   
+                    }.onChange(of: selectedOption) { oldValue, newValue in
+                        if (newValue != nil) {
+                            sp.scrollTo(newValue!)
+                        } else if (!filteredOptions.isEmpty) {
+                            sp.scrollTo(0)
+                        }
                     }
                 }
+                
             }
             .scrollDisabled(true)
             Spacer()
