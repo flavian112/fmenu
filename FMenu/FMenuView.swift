@@ -3,21 +3,18 @@ import SwiftUI
 struct FMenuView: View {
     
     let searchList: [String]
-    
     @State private var searchString: String = ""
-    
+    @State private var selectedOption: Int? = nil
     @FocusState private var isFocused: Bool
     
-    @State private var selectedOption: Int? = nil
-    
     private var filteredOptions: [String] {
-        let arr: [String]
-        if (args.caseInsensitive) {
-            arr = searchList.filter { searchString.isEmpty || $0.localizedCaseInsensitiveContains(searchString) }
-        } else {
-            arr = searchList.filter { searchString.isEmpty || $0.localizedStandardContains(searchString) }
+        let filtered: [String]
+        filtered = searchList.filter { searchString.isEmpty ||
+            args.caseInsensitive ?
+            $0.localizedCaseInsensitiveContains(searchString) :
+            $0.localizedStandardContains(searchString)
         }
-        return Array(arr.prefix(50))
+        return Array(filtered.prefix(50))
     }
     
     
@@ -26,6 +23,7 @@ struct FMenuView: View {
             Text(args.prompt)
                 .foregroundStyle(color(args.colorSelectedForeground))
                 .background(color(args.colorSelectedBackground))
+            
             TextField(text: $searchString) {
                 Text("")
             }
@@ -34,32 +32,28 @@ struct FMenuView: View {
                 .background(color(args.colorBackground))
                 .frame(width: 200)
                 .focused($isFocused)
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 ScrollViewReader { sp in
                     HStack(spacing: 0) {
                         ForEach(Array(filteredOptions.enumerated()), id: \.offset) { index, option in
-                            if (index == selectedOption) {
-                                Text(option)
-                                    .padding([.leading, .trailing], 5)
-                                    .foregroundStyle(color(args.colorSelectedForeground))
-                                    .background(color(args.colorSelectedBackground))
-                            } else {
-                                Text(option)
-                                    .padding([.leading, .trailing], 5)
-                                    .foregroundStyle(color(args.colorForeground))
-                                    .background(color(args.colorBackground))
-                            }
-                                       
+                            Text(option)
+                                .padding([.leading, .trailing], 5)
+                                .foregroundStyle(color(index == selectedOption ?
+                                                       args.colorSelectedForeground :
+                                                        args.colorForeground))
+                                .background(color(index == selectedOption ?
+                                                  args.colorSelectedBackground :
+                                                    args.colorBackground))
                         }
-                    }.onChange(of: selectedOption) { oldValue, newValue in
-                        if (newValue != nil) {
-                            sp.scrollTo(newValue!)
+                    }.onChange(of: selectedOption) { _ , newValue in
+                        if let newValue = newValue {
+                            sp.scrollTo(newValue)
                         } else if (!filteredOptions.isEmpty) {
                             sp.scrollTo(0)
                         }
                     }
                 }
-                
             }
             .scrollDisabled(true)
             Spacer()
@@ -122,6 +116,8 @@ struct FMenuView: View {
     }
     
     private func color(_ color: CommandLineArguments.Color) -> Color {
-        return Color(red: Double(color.red) / 255.0, green: Double(color.green) / 255.0, blue: Double(color.blue) / 255.0)
+        return Color(red: Double(color.red) / 255.0,
+                     green: Double(color.green) / 255.0,
+                     blue: Double(color.blue) / 255.0)
     }
 }
